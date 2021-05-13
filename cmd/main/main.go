@@ -105,7 +105,7 @@ func main() {
 
 	fmt.Println(collectionProductFromDB, collectionProductStock, mtCatalogProductStock)
 
-	b, err := json.Marshal(collectionProductStock)
+	b, err := json.Marshal(mtCatalogProductStock)
 
 	if err != nil {
 		fmt.Println("xxxxxxxx", err)

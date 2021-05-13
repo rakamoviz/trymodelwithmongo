@@ -139,16 +139,16 @@ func (d *db) SaveProductStock(ps *catalog.CollectionProductStock) error {
 	return err
 }
 
-func (d *db) FindProductStock(retailerID int64, storeID int64) (*catalog.CollectionProductStock, error) {
+func (d *db) FindProductStock(retailerID int64, storeID int64, productSKU string) (*catalog.CollectionProductStock, error) {
 	ps := catalog.CollectionProductStock{}
 
 	ctx, cancel := context.WithTimeout(context.Background(), d.timeout)
 	defer cancel()
 
 	rawFilter := map[string]interface{}{
-		"retailer_id": ps.RetailerID,
-		"store_id":    ps.StoreID,
-		"product_sku": ps.ProductSKU,
+		"retailer_id": retailerID,
+		"store_id":    storeID,
+		"product_sku": productSKU,
 	}
 
 	err := d.productsColl.FindOne(ctx, bson.M(rawFilter)).Decode(&ps)

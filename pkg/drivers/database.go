@@ -14,7 +14,7 @@ type DB interface {
 
 	SaveProductStock(*catalog.CollectionProductStock) error
 	FindProductStock(int64, int64, string) (*catalog.CollectionProductStock, error)
-	FindProductStocks(int64, int64, string) (*catalog.CollectionProductStock, error)
+	FindProductStocks(map[string]interface{}) ([]*catalog.CollectionProductStock, error)
 }
 
 func GetDriver(connStr, database string) (DB, error) {

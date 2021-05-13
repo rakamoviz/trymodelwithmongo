@@ -115,4 +115,8 @@ func main() {
 	}
 
 	db.SaveProductStock(collectionProductStock)
+	ps2, err := db.FindProductStocks(map[string]interface{}{
+		"retailer_id": 1, "store_id": 789, "product_sku": "abc",
+	})
+	fmt.Println("eeee", *ps2[0])
 }

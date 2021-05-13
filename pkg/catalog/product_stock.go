@@ -61,15 +61,13 @@ type PublicProductStockDiscount struct {
 }
 
 type PublicProductStock struct {
-	StoreID           int64                          `json:"store_id"`
-	ProductSKU        string                         `json:"product_sku"`
-	RetailerID        int64                          `json:"retailer_id"`
-	RetailerProductID int64                          `json:"retailer_product_id"`
-	Stock             int64                          `json:"stock"`
-	UnitPrice         BigDecimal                     `json:"unit_price"`
-	Enabled           bool                           `json:"enabled"`
-	Variations        *[]PublicProductStockVariation `json:"variations"`
-	Discounts         *[]PublicProductStockDiscount  `json:"discounts"`
+	StoreID    int64                         `json:"store_id"`
+	ProductSKU string                        `json:"product_sku"`
+	Stock      int64                         `json:"stock"`
+	UnitPrice  BigDecimal                    `json:"unit_price"`
+	Enabled    bool                          `json:"enabled"`
+	Variations []PublicProductStockVariation `json:"variations"`
+	Discounts  []PublicProductStockDiscount  `json:"discounts"`
 }
 
 type CollectionProductStockVariation struct {
@@ -86,15 +84,14 @@ type CollectionProductStockDiscount struct {
 }
 
 type CollectionProductStock struct {
-	StoreID           int64                              `json:"store_id"`
-	ProductSKU        string                             `json:"product_sku"`
-	RetailerID        int64                              `json:"retailer_id"`
-	RetailerProductID int64                              `json:"retailer_product_id"`
-	Stock             int64                              `json:"stock"`
-	UnitPrice         BigDecimal                         `json:"unit_price"`
-	Enabled           bool                               `json:"enabled"`
-	Variations        *[]CollectionProductStockVariation `json:"variations"`
-	Discounts         *[]CollectionProductStockDiscount  `json:"discounts"`
+	StoreID           int64                             `json:"store_id"`
+	RetailerID        int64                             `json:"retailer_id"`
+	RetailerProductID *int64                            `json:"retailer_product_id"`
+	Stock             int64                             `json:"stock"`
+	UnitPrice         BigDecimal                        `json:"unit_price"`
+	Enabled           bool                              `json:"enabled"`
+	Variations        []CollectionProductStockVariation `json:"variations"`
+	Discounts         []CollectionProductStockDiscount  `json:"discounts"`
 }
 
 type EcomMtCatalogProductStockVariation struct {
@@ -106,7 +103,7 @@ type EcomMtCatalogProductStockVariation struct {
 
 type EcomMtCatalogProductStock struct {
 	StoreID           int64                                `json:"storeId"`
-	RetailerProductID int64                                `json:"retailerProductId"`
+	RetailerProductID *int64                               `json:"retailerProductId"`
 	Stock             int64                                `json:"stock"`
 	UnitPrice         BigDecimal                           `json:"unitPrice"`
 	Enabled           bool                                 `json:"enabled"`

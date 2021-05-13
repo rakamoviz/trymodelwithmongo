@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/big"
 
@@ -14,19 +15,19 @@ func main() {
 		panic(err)
 	}
 
+	retailerID := int64(1)
+
 	publicProductStockAmountBr := new(big.Rat)
 	publicProductStockAmountBr.SetString("12.4")
 
 	publicProductStock := &catalog.PublicProductStock{
-		StoreID:           789,
-		ProductSKU:        "abc",
-		RetailerID:        1,
-		RetailerProductID: 456,
-		Stock:             10,
-		UnitPrice:         catalog.BigDecimal(*publicProductStockAmountBr),
-		Enabled:           true,
-		Variations:        &[]catalog.PublicProductStockVariation{},
-		Discounts:         &[]catalog.PublicProductStockDiscount{},
+		StoreID:    789,
+		ProductSKU: "abc",
+		Stock:      10,
+		UnitPrice:  catalog.BigDecimal(*publicProductStockAmountBr),
+		Enabled:    true,
+		Variations: []catalog.PublicProductStockVariation{},
+		Discounts:  []catalog.PublicProductStockDiscount{},
 	}
 
 	/*
@@ -44,8 +45,51 @@ func main() {
 
 	collectionProductFromDB, err := db.FindPublicProductBySKUAndRetailerID(
 		publicProductStock.ProductSKU,
-		publicProductStock.RetailerID,
+		retailerID,
 	)
 
-	fmt.Println(collectionProductFromDB)
+	/*
+		type CollectionProductStockVariation struct {
+			VariationValue string     `json:"variation_value"`
+			Stock          int32      `json:"stock"`
+			PriceDelta     BigDecimal `json:"price_delta"`
+		}
+
+		type CollectionProductStockDiscount struct {
+			DiscountType string     `json:"discount_type"`
+			Value        string     `json:"value"`
+			BeginDate    CustomTime `json:"begin_date"`
+			EndDate      CustomTime `json:"end_date"`
+		}
+	*/
+	collectionProductStockVariations := []catalog.CollectionProductStockVariation{}
+	for _, publicProductStockVariation := range publicProductStock.Variations {
+		collectionProductStockVariations = append(
+			collectionProductStockVariations, catalog.CollectionProductStockVariation{
+				VariationValue: publicProductStockVariation.VariationValue,
+				Stock:          publicProductStockVariation.Stock,
+				PriceDelta:     publicProductStockVariation.PriceDelta,
+			},
+		)
+	}
+
+	collectionProductStock := &catalog.CollectionProductStock{
+		StoreID:           publicProductStock.StoreID,
+		RetailerID:        retailerID,
+		RetailerProductID: collectionProductFromDB.AlternativeID,
+		Stock:             publicProductStock.Stock,
+		UnitPrice:         publicProductStock.UnitPrice,
+		Enabled:           publicProductStock.Enabled,
+		Variations:        collectionProductStockVariations,
+	}
+
+	fmt.Println(collectionProductFromDB, collectionProductStock)
+
+	b, err := json.Marshal(collectionProductStock)
+
+	if err != nil {
+		fmt.Println("xxxxxxxx", err)
+	} else {
+		fmt.Println("xx", string(b))
+	}
 }

@@ -84,14 +84,17 @@ type CollectionProductStockDiscount struct {
 }
 
 type CollectionProductStock struct {
-	StoreID           int64                             `json:"store_id"`
-	RetailerID        int64                             `json:"retailer_id"`
-	RetailerProductID *int64                            `json:"retailer_product_id"`
-	Stock             int64                             `json:"stock"`
-	UnitPrice         BigDecimal                        `json:"unit_price"`
-	Enabled           bool                              `json:"enabled"`
-	Variations        []CollectionProductStockVariation `json:"variations"`
-	Discounts         []CollectionProductStockDiscount  `json:"discounts"`
+	StoreID           int64                             `bson:"store_id"`
+	ProductSKU        string                            `json:"product_sku"`
+	RetailerID        int64                             `bson:"retailer_id"`
+	RetailerProductID *int64                            `bson:"retailer_product_id"`
+	Stock             int64                             `bson:"stock"`
+	UnitPrice         BigDecimal                        `bson:"unit_price"`
+	Enabled           bool                              `bson:"enabled"`
+	Variations        []CollectionProductStockVariation `bson:"variations"`
+	Discounts         []CollectionProductStockDiscount  `bson:"discounts"`
+	CreatedAt         *time.Time                        `bson:"created_at,omitempty"`
+	UpdatedAt         *time.Time                        `bson:"updated_at,omitempty"`
 }
 
 type EcomMtCatalogProductStockVariation struct {

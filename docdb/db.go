@@ -98,6 +98,104 @@ func (d *db) SaveProduct(ps *catalog.ProductStore) error {
 	return err
 }
 
+func (d *db) SaveProductStock(ps *catalog.CollectionProductStock) error {
+	if ps == nil {
+		return fmt.Errorf("Should not try to save nil CollectionProductStock")
+	}
+
+	logrus.Debugf(
+		"[docdb] saving CollectionProductStock (retailer_id: %d, store_id: %d, product_sku: %s)",
+		ps.RetailerID, ps.StoreID, ps.ProductSKU,
+	)
+
+	now := time.Now()
+
+	ctx, cancel := context.WithTimeout(context.Background(), d.timeout)
+	defer cancel()
+
+	psCopy := *ps
+	psCopy.CreatedAt = nil
+	psCopy.UpdatedAt = &now
+
+	updateOptions := options.Update().SetUpsert(true)
+	updateResult, err := d.productStocksColl.UpdateOne(ctx, bson.M{
+		"retailer_id": ps.RetailerID,
+		"store_id":    ps.StoreID,
+		"product_sku": ps.ProductSKU,
+	}, bson.M{
+		"$set":         psCopy,
+		"$setOnInsert": bson.M{"created_at": now},
+	}, updateOptions)
+
+	if err != nil {
+		logrus.Errorf("[docdb] SaveProductStock: %s\n", err.Error())
+	}
+
+	ps.UpdatedAt = &now
+	if updateResult.MatchedCount > 0 {
+		ps.CreatedAt = &now
+	}
+
+	return err
+}
+
+func (d *db) FindProductStock(retailerID int64, storeID int64) (*catalog.CollectionProductStock, error) {
+	ps := catalog.CollectionProductStock{}
+
+	ctx, cancel := context.WithTimeout(context.Background(), d.timeout)
+	defer cancel()
+
+	rawFilter := map[string]interface{}{
+		"retailer_id": ps.RetailerID,
+		"store_id":    ps.StoreID,
+		"product_sku": ps.ProductSKU,
+	}
+
+	err := d.productsColl.FindOne(ctx, bson.M(rawFilter)).Decode(&ps)
+
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			logrus.Debugf("[docdb] FindProductStock miss: %s\n", rawFilter)
+			return nil, nil
+		} else {
+			logrus.Errorf("[docdb] FindProductStock: %s\n", err.Error())
+			return nil, err
+		}
+	}
+
+	return &ps, err
+}
+
+func (d *db) FindProductStocks(rawFilter map[string]interface{}) ([]*catalog.CollectionProductStock, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), d.timeout)
+	defer cancel()
+
+	cur, err := d.productsColl.Find(ctx, bson.M(rawFilter))
+	results := []*catalog.CollectionProductStock{}
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			logrus.Debugf("[docdb] FindProductStock miss: %s\n", rawFilter)
+			return results, nil
+		} else {
+			logrus.Errorf("[docdb] FindProductStock: %s\n", err.Error())
+			return nil, err
+		}
+	}
+
+	for cur.Next(context.Background()) {
+		var elem catalog.CollectionProductStock
+		err := cur.Decode(&elem)
+		if err != nil {
+			fmt.Println("Parse error : ", err)
+			return nil, err
+		}
+		fmt.Println("Log : ", elem)
+		results = append(results, &elem)
+	}
+
+	return results, err
+}
+
 func (d *db) findProduct(key string) (*catalog.ProductStore, error) {
 	product := catalog.ProductStore{}
 	ctx, cancel := context.WithTimeout(context.Background(), d.timeout)
@@ -147,6 +245,56 @@ func (d *db) FindPublicProductBySKUAndRetailerID(sku string, retailerID int64) (
 	return &product, err
 }
 
+func createProductsCollIndex(dbConn *db) error {
+	indxList := []string{"key", "variationFamily"}
+
+	for _, idx := range indxList {
+		ctx, cancel := context.WithTimeout(context.Background(), dbConn.timeout)
+		defer cancel()
+		idxn := fmt.Sprintf("%s_idx", idx)
+		t := true
+
+		_, err := dbConn.productsColl.Indexes().CreateOne(ctx, mongo.IndexModel{
+			Keys: bson.M{idx: 1},
+			Options: &options.IndexOptions{
+				Name:       &idxn,
+				Background: &t,
+			},
+		})
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func createProductStocksCollIndex(dbConn *db) error {
+	indxList := []string{"retailer_id", "store_id", "product_sku"}
+
+	for _, idx := range indxList {
+		ctx, cancel := context.WithTimeout(context.Background(), dbConn.timeout)
+		defer cancel()
+		idxn := fmt.Sprintf("%s_idx", idx)
+		t := true
+
+		_, err := dbConn.productStocksColl.Indexes().CreateOne(ctx, mongo.IndexModel{
+			Keys: bson.M{idx: 1},
+			Options: &options.IndexOptions{
+				Name:       &idxn,
+				Background: &t,
+			},
+		})
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func New(connStr, database string) (*db, error) {
 	conn, err := connection(connStr, database)
 	if err != nil {
@@ -167,24 +315,17 @@ func New(connStr, database string) (*db, error) {
 		return nil, err
 	}
 
-	indxList := []string{"key", "variationFamily"}
-
-	for _, idx := range indxList {
-		ctx, cancel := context.WithTimeout(context.Background(), dbConn.timeout)
-		defer cancel()
-		idxn := fmt.Sprintf("%s_idx", idx)
-		t := true
-
-		_, err = dbConn.productsColl.Indexes().CreateOne(ctx, mongo.IndexModel{
-			Keys: bson.M{idx: 1},
-			Options: &options.IndexOptions{
-				Name:       &idxn,
-				Background: &t,
-			},
-		})
+	err = createProductsCollIndex(dbConn)
+	if err != nil {
+		return nil, err
 	}
 
-	return dbConn, err
+	err = createProductStocksCollIndex(dbConn)
+	if err != nil {
+		return nil, err
+	}
+
+	return dbConn, nil
 }
 
 func buildKey(pid, sid int64) string {

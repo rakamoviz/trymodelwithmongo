@@ -11,6 +11,8 @@ type DB interface {
 
 	FindPublicProductBySKUAndRetailerID(string, int64) (*catalog.CollectionProduct, error)
 	SavePublicProduct(*catalog.CollectionProduct) (*int64, error)
+
+	SaveProductStock(*catalog.CollectionProductStock) error
 }
 
 func GetDriver(connStr, database string) (DB, error) {

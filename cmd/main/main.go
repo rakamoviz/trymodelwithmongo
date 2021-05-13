@@ -75,6 +75,7 @@ func main() {
 
 	collectionProductStock := &catalog.CollectionProductStock{
 		StoreID:           publicProductStock.StoreID,
+		ProductSKU:        publicProductStock.ProductSKU,
 		RetailerID:        retailerID,
 		RetailerProductID: collectionProductFromDB.AlternativeID,
 		Stock:             publicProductStock.Stock,
@@ -112,4 +113,6 @@ func main() {
 	} else {
 		fmt.Println("xx", string(b))
 	}
+
+	db.SaveProductStock(collectionProductStock)
 }

@@ -83,7 +83,27 @@ func main() {
 		Variations:        collectionProductStockVariations,
 	}
 
-	fmt.Println(collectionProductFromDB, collectionProductStock)
+	mtCatalogProductStockVariations := []catalog.EcomMtCatalogProductStockVariation{}
+	for _, publicProductStockVariation := range publicProductStock.Variations {
+		mtCatalogProductStockVariations = append(
+			mtCatalogProductStockVariations, catalog.EcomMtCatalogProductStockVariation{
+				VariationValue: publicProductStockVariation.VariationValue,
+				Stock:          publicProductStockVariation.Stock,
+				PriceDelta:     publicProductStockVariation.PriceDelta,
+			},
+		)
+	}
+
+	mtCatalogProductStock := &catalog.EcomMtCatalogProductStock{
+		StoreID:           publicProductStock.StoreID,
+		RetailerProductID: collectionProductFromDB.AlternativeID,
+		Stock:             publicProductStock.Stock,
+		UnitPrice:         publicProductStock.UnitPrice,
+		Enabled:           publicProductStock.Enabled,
+		Variations:        mtCatalogProductStockVariations,
+	}
+
+	fmt.Println(collectionProductFromDB, collectionProductStock, mtCatalogProductStock)
 
 	b, err := json.Marshal(collectionProductStock)
 

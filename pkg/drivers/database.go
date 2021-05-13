@@ -13,6 +13,8 @@ type DB interface {
 	SavePublicProduct(*catalog.CollectionProduct) (*int64, error)
 
 	SaveProductStock(*catalog.CollectionProductStock) error
+	FindProductStock(int64, int64, string) (*catalog.CollectionProductStock, error)
+	FindProductStocks(int64, int64, string) (*catalog.CollectionProductStock, error)
 }
 
 func GetDriver(connStr, database string) (DB, error) {

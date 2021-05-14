@@ -7,14 +7,14 @@ import (
 )
 
 const (
-	BigDecimalPrecision = 4
+	DecimalPrecision = 4
 )
 
-type BigDecimal big.Rat
+type Decimal big.Rat
 
-func (bd BigDecimal) BsonDecimal128() primitive.Decimal128 {
+func (bd Decimal) BsonDecimal128() primitive.Decimal128 {
 	br := big.Rat(bd)
-	d, _ := primitive.ParseDecimal128(br.FloatString(BigDecimalPrecision))
+	d, _ := primitive.ParseDecimal128(br.FloatString(DecimalPrecision))
 
 	return d
 }

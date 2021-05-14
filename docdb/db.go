@@ -170,9 +170,7 @@ func (d *db) FindProductStocks(rawFilter map[string]interface{}) ([]*catalog.Col
 	ctx, cancel := context.WithTimeout(context.Background(), d.timeout)
 	defer cancel()
 
-	fmt.Println("!!!!! .... ")
 	cur, err := d.productsColl.Find(ctx, bson.M(rawFilter))
-	fmt.Println("!!!!!")
 	results := []*catalog.CollectionProductStock{}
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -186,7 +184,6 @@ func (d *db) FindProductStocks(rawFilter map[string]interface{}) ([]*catalog.Col
 
 	for cur.Next(context.Background()) {
 		elem := catalog.CollectionProductStock{}
-		fmt.Println("93939393 ", elem, elem.UnitPrice.String())
 		err := cur.Decode(&elem)
 		if err != nil {
 			fmt.Println("Parse error : ", err)

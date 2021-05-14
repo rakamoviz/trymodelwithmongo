@@ -28,7 +28,7 @@ func main() {
 		StoreID:    789,
 		ProductSKU: "abc",
 		Stock:      10,
-		UnitPrice:  typealias.BigDecimalFloat64(*publicProductStockAmountBr),
+		UnitPrice:  typealias.DecimalFloat64(*publicProductStockAmountBr),
 		Enabled:    true,
 		Variations: []catalog.PublicProductStockVariation{},
 		Discounts:  []catalog.PublicProductStockDiscount{},
@@ -41,24 +41,23 @@ func main() {
 
 	collectionProductStockVariations := []catalog.CollectionProductStockVariation{}
 	for _, publicProductStockVariation := range publicProductStock.Variations {
-		priceDeltaDecimal128 := publicProductStockVariation.PriceDelta.BsonDecimal128()
 		collectionProductStockVariations = append(
 			collectionProductStockVariations, catalog.CollectionProductStockVariation{
 				VariationValue: publicProductStockVariation.VariationValue,
 				Stock:          publicProductStockVariation.Stock,
-				PriceDelta:     priceDeltaDecimal128,
+				PriceDelta:     publicProductStockVariation.PriceDelta.Float64L(),
 			},
 		)
 	}
 
-	unitPriceDecimal128 := publicProductStock.UnitPrice.BsonDecimal128()
+	fmt.Println("publicProductStock", publicProductStock.UnitPrice.FloatString())
 	collectionProductStock := &catalog.CollectionProductStock{
 		StoreID:           publicProductStock.StoreID,
 		ProductSKU:        publicProductStock.ProductSKU,
 		RetailerID:        retailerID,
 		RetailerProductID: collectionProductFromDB.AlternativeID,
 		Stock:             publicProductStock.Stock,
-		UnitPrice:         unitPriceDecimal128,
+		UnitPrice:         publicProductStock.UnitPrice.Float64L(),
 		Enabled:           publicProductStock.Enabled,
 		Variations:        collectionProductStockVariations,
 	}
@@ -93,15 +92,13 @@ func main() {
 		fmt.Println("xx", string(b))
 	}
 
-	fmt.Println("___________________________________")
-	fmt.Println(collectionProductStock)
+	fmt.Println("collectionProductStock", collectionProductStock)
 	db.SaveProductStock(collectionProductStock)
-	fmt.Println("___________________________________")
 
 	ps2, err := db.FindProductStocks(map[string]interface{}{
 		"retailer_id": 1, "store_id": 789, "product_sku": "abc",
 	})
-	fmt.Println("eeee", *ps2[0])
+	fmt.Println("*ps2[0]", *ps2[0])
 
 	restClient := gohttp.NewClient(gohttp.Options{
 		ClientName: "ecom-catalog-clg",

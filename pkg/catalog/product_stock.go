@@ -4,13 +4,12 @@ import (
 	"time"
 
 	"github.com/rakamoviz/trymodelwithmongo/typealias"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type PublicProductStockVariation struct {
-	VariationValue string                      `json:"variation_value"`
-	Stock          int32                       `json:"stock"`
-	PriceDelta     typealias.BigDecimalFloat64 `json:"price_delta"`
+	VariationValue string                   `json:"variation_value"`
+	Stock          int32                    `json:"stock"`
+	PriceDelta     typealias.DecimalFloat64 `json:"price_delta"`
 }
 
 type PublicProductStockDiscount struct {
@@ -24,16 +23,16 @@ type PublicProductStock struct {
 	StoreID    int64                         `json:"store_id"`
 	ProductSKU string                        `json:"product_sku"`
 	Stock      int64                         `json:"stock"`
-	UnitPrice  typealias.BigDecimalFloat64   `json:"unit_price"`
+	UnitPrice  typealias.DecimalFloat64      `json:"unit_price"`
 	Enabled    bool                          `json:"enabled"`
 	Variations []PublicProductStockVariation `json:"variations"`
 	Discounts  []PublicProductStockDiscount  `json:"discounts"`
 }
 
 type CollectionProductStockVariation struct {
-	VariationValue string               `bson:"variation_value"`
-	Stock          int32                `bson:"stock"`
-	PriceDelta     primitive.Decimal128 `bson:"price_delta"`
+	VariationValue string  `bson:"variation_value"`
+	Stock          int32   `bson:"stock"`
+	PriceDelta     float64 `bson:"price_delta"`
 }
 
 type CollectionProductStockDiscount struct {
@@ -49,7 +48,7 @@ type CollectionProductStock struct {
 	RetailerID        int64                             `bson:"retailer_id"`
 	RetailerProductID *int64                            `bson:"retailer_product_id"`
 	Stock             int64                             `bson:"stock"`
-	UnitPrice         primitive.Decimal128              `bson:"unit_price"`
+	UnitPrice         float64                           `bson:"unit_price"`
 	Enabled           bool                              `bson:"enabled"`
 	Variations        []CollectionProductStockVariation `bson:"variations"`
 	Discounts         []CollectionProductStockDiscount  `bson:"discounts"`
@@ -58,17 +57,17 @@ type CollectionProductStock struct {
 }
 
 type EcomMtCatalogProductStockVariation struct {
-	RetailerProductID int64                       `json:"retailerProductId"`
-	VariationValue    string                      `json:"variationValue"`
-	Stock             int32                       `json:"stock"`
-	PriceDelta        typealias.BigDecimalFloat64 `json:"priceDelta"`
+	RetailerProductID int64                    `json:"retailerProductId"`
+	VariationValue    string                   `json:"variationValue"`
+	Stock             int32                    `json:"stock"`
+	PriceDelta        typealias.DecimalFloat64 `json:"priceDelta"`
 }
 
 type EcomMtCatalogProductStock struct {
 	StoreID           int64                                `json:"storeId"`
 	RetailerProductID *int64                               `json:"retailerProductId"`
 	Stock             int64                                `json:"stock"`
-	UnitPrice         typealias.BigDecimalFloat64          `json:"unitPrice"`
+	UnitPrice         typealias.DecimalFloat64             `json:"unitPrice"`
 	Enabled           bool                                 `json:"enabled"`
 	Variations        []EcomMtCatalogProductStockVariation `json:"variations"`
 }

@@ -6,8 +6,10 @@ import (
 	"time"
 
 	"github.com/rakamoviz/trymodelwithmongo/pkg/catalog"
+	"github.com/rakamoviz/trymodelwithmongo/pkg/drivers"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
@@ -98,11 +100,9 @@ func (d *db) SaveProduct(ps *catalog.ProductStore) error {
 	return err
 }
 
-func (d *db) SaveProductStock(ps *catalog.CollectionProductStock) error {
-	if ps == nil {
-		return fmt.Errorf("Should not try to save nil CollectionProductStock")
-	}
-
+func (d *db) SaveProductStock(
+	ps catalog.ProductStockEntity,
+) error {
 	logrus.Debugf(
 		"[docdb] saving CollectionProductStock (retailer_id: %d, store_id: %d, product_sku: %s)",
 		ps.RetailerID, ps.StoreID, ps.ProductSKU,
@@ -113,84 +113,95 @@ func (d *db) SaveProductStock(ps *catalog.CollectionProductStock) error {
 	ctx, cancel := context.WithTimeout(context.Background(), d.timeout)
 	defer cancel()
 
-	psCopy := *ps
+	psCopy := ps
 	psCopy.CreatedAt = nil
 	psCopy.UpdatedAt = &now
 
 	updateOptions := options.Update().SetUpsert(true)
-	updateResult, err := d.productStocksColl.UpdateOne(ctx, bson.M{
-		"retailer_id": ps.RetailerID,
-		"store_id":    ps.StoreID,
-		"product_sku": ps.ProductSKU,
+	_, err := d.productStocksColl.UpdateOne(ctx, bson.M{
+		"retailer_id": psCopy.RetailerID,
+		"store_id":    psCopy.StoreID,
+		"product_sku": psCopy.ProductSKU,
 	}, bson.M{
 		"$set":         psCopy,
-		"$setOnInsert": bson.M{"created_at": now},
+		"$setOnInsert": bson.M{"created_at": now, "_id": primitive.NewObjectID()},
 	}, updateOptions)
 
 	if err != nil {
 		logrus.Errorf("[docdb] SaveProductStock: %s\n", err.Error())
+		return &drivers.DBError{
+			StatusCode: -1,
+			Err:        err,
+		}
 	}
 
-	ps.UpdatedAt = &now
-	if updateResult.MatchedCount > 0 {
-		ps.CreatedAt = &now
-	}
-
-	return err
+	return nil
 }
 
-func (d *db) FindProductStock(retailerID int64, storeID int64, productSKU string) (*catalog.CollectionProductStock, error) {
-	ps := catalog.CollectionProductStock{}
+func (d *db) FindProductStock(key catalog.ProductStockEntityKey) (catalog.ProductStockEntity, error) {
+	ps := catalog.ProductStockEntity{}
 
 	ctx, cancel := context.WithTimeout(context.Background(), d.timeout)
 	defer cancel()
 
 	rawFilter := map[string]interface{}{
-		"retailer_id": retailerID,
-		"store_id":    storeID,
-		"product_sku": productSKU,
+		"retailer_id": key.RetailerID,
+		"store_id":    key.StoreID,
+		"product_sku": key.ProductSKU,
 	}
 
-	err := d.productsColl.FindOne(ctx, bson.M(rawFilter)).Decode(&ps)
+	err := d.productStocksColl.FindOne(ctx, bson.M(rawFilter)).Decode(&ps)
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			logrus.Debugf("[docdb] FindProductStock miss: %s\n", rawFilter)
-			return nil, nil
+			return ps, &drivers.DBError{
+				StatusCode: 0,
+				Err:        err,
+			}
 		} else {
 			logrus.Errorf("[docdb] FindProductStock: %s\n", err.Error())
-			return nil, err
+			return ps, &drivers.DBError{
+				StatusCode: -1,
+				Err:        err,
+			}
 		}
 	}
 
-	return &ps, err
+	return ps, err
 }
 
-func (d *db) FindProductStocks(rawFilter map[string]interface{}) ([]*catalog.CollectionProductStock, error) {
+func (d *db) FindProductStocks(rawFilter map[string]interface{}) ([]catalog.ProductStockEntity, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), d.timeout)
 	defer cancel()
 
 	cur, err := d.productStocksColl.Find(ctx, bson.M(rawFilter))
-	results := []*catalog.CollectionProductStock{}
+	results := []catalog.ProductStockEntity{}
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			logrus.Debugf("[docdb] FindProductStock miss: %s\n", rawFilter)
-			return results, nil
+			return results, &drivers.DBError{
+				StatusCode: 0,
+				Err:        err,
+			}
 		} else {
 			logrus.Errorf("[docdb] FindProductStock: %s\n", err.Error())
-			return nil, err
+			return results, &drivers.DBError{
+				StatusCode: -1,
+				Err:        err,
+			}
 		}
 	}
 
 	for cur.Next(context.Background()) {
-		elem := catalog.CollectionProductStock{}
+		elem := catalog.ProductStockEntity{}
 		err := cur.Decode(&elem)
 		if err != nil {
 			fmt.Println("Parse error : ", err)
 			return nil, err
 		}
 		fmt.Println("Log : ", elem)
-		results = append(results, &elem)
+		results = append(results, elem)
 	}
 
 	return results, err
@@ -295,7 +306,7 @@ func createProductStocksCollIndex(dbConn *db) error {
 	return nil
 }
 
-func New(connStr, database string) (*db, error) {
+func NewDocDb(connStr, database string) (*db, error) {
 	conn, err := connection(connStr, database)
 	if err != nil {
 		return nil, err
@@ -351,4 +362,8 @@ func connection(connStr, database string) (*mongo.Database, error) {
 	}
 
 	return client.Database(database), nil
+}
+
+func GetDriver(connStr, database string) (drivers.DB, error) {
+	return NewDocDb(connStr, database)
 }

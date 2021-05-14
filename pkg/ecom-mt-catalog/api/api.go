@@ -48,7 +48,7 @@ func (api *EcomMtCatalogAPI) headers() map[string]string {
 	}
 }
 
-func (api *EcomMtCatalogAPI) SyncProductStock(productStock catalog.EcomMtCatalogProductStock) error {
+func (api *EcomMtCatalogAPI) SyncProductStock(productStock catalog.EcomMtCatalogProductStockDTO) error {
 	req := gohttp.Req{
 		Method:       http.MethodPut,
 		Path:         fmt.Sprintf("/api/ecom-mt-catalog/cpgs/catalog/store/%d/product/stock?total=true", productStock.StoreID),

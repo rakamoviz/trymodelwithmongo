@@ -5,14 +5,14 @@ import (
 
 	"bitbucket.org/rappinc/gohttp"
 	"github.com/labstack/echo"
-	"github.com/rakamoviz/trymodelwithmongo/pkg/drivers"
+	"github.com/rakamoviz/trymodelwithmongo/docdb"
 	ecomMtCatalogAPI "github.com/rakamoviz/trymodelwithmongo/pkg/ecom-mt-catalog/api"
 	storeRoutes "github.com/rakamoviz/trymodelwithmongo/routes/store"
 	"github.com/rakamoviz/trymodelwithmongo/util"
 )
 
 func main() {
-	db, err := drivers.GetDriver("mongodb://localhost:27017", "ecomcatalogclg")
+	db, err := docdb.GetDriver("mongodb://localhost:27017", "ecomcatalogclg")
 	if err != nil {
 		panic(err)
 	}

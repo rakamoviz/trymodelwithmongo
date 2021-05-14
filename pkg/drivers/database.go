@@ -1,9 +1,18 @@
 package drivers
 
 import (
-	"github.com/rakamoviz/trymodelwithmongo/docdb"
 	"github.com/rakamoviz/trymodelwithmongo/pkg/catalog"
 )
+
+type DBError struct {
+	StatusCode int
+
+	Err error
+}
+
+func (r *DBError) Error() string {
+	return r.Err.Error()
+}
 
 type DB interface {
 	SaveProduct(*catalog.ProductStore) error
@@ -12,11 +21,7 @@ type DB interface {
 	FindPublicProductBySKUAndRetailerID(string, int64) (*catalog.CollectionProduct, error)
 	SavePublicProduct(*catalog.CollectionProduct) (*int64, error)
 
-	SaveProductStock(*catalog.CollectionProductStock) error
-	FindProductStock(int64, int64, string) (*catalog.CollectionProductStock, error)
-	FindProductStocks(map[string]interface{}) ([]*catalog.CollectionProductStock, error)
-}
-
-func GetDriver(connStr, database string) (DB, error) {
-	return docdb.New(connStr, database)
+	SaveProductStock(catalog.ProductStockEntity) error
+	FindProductStock(catalog.ProductStockEntityKey) (catalog.ProductStockEntity, error)
+	FindProductStocks(map[string]interface{}) ([]catalog.ProductStockEntity, error)
 }

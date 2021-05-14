@@ -50,6 +50,10 @@ func NewDecimalFloat64S(value string) (*DecimalFloat64, error) {
 	return &bd, nil
 }
 
+func NewDecimalFloat64D(value primitive.Decimal128) (*DecimalFloat64, error) {
+	return NewDecimalFloat64S(value.String())
+}
+
 func (bd DecimalFloat64) FloatString() string {
 	br := big.Rat(bd)
 

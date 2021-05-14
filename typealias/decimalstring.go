@@ -40,16 +40,15 @@ func NewDecimalStringF(value float64) *DecimalString {
 	return &bd
 }
 
-func NewDecimalStringS(value string) (*DecimalString, error) {
+func NewDecimalStringS(value string) (DecimalString, error) {
 	br := big.Rat{}
 	_, ok := br.SetString(value)
 
 	if !ok {
-		return nil, fmt.Errorf("Error parsing DecimalString from %s", value)
+		return DecimalString{}, fmt.Errorf("Error parsing DecimalString from %s", value)
 	}
 
-	bd := DecimalString(br)
-	return &bd, nil
+	return DecimalString(br), nil
 }
 
 func (bd DecimalString) FloatString() string {

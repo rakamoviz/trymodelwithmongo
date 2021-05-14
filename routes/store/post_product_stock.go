@@ -1,19 +1,31 @@
 package store
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo"
 	"github.com/rakamoviz/trymodelwithmongo/pkg/catalog"
-	"github.com/rakamoviz/trymodelwithmongo/typealias"
 	"github.com/rakamoviz/trymodelwithmongo/util"
 )
 
+/*
 func toMTCatalogProductStock(
 	ctx context.Context, ps catalog.ProductStockEntity,
-) (*catalog.EcomMtCatalogProductStockDTO, error) {
+) (catalog.EcomMtCatalogProductStockDTO, error) {
+	unitPrice, err := typealias.NewDecimalFloat64D(ps.UnitPrice)
+	if err != nil {
+		return nil, err
+	}
+
+	mtCatalogPS := catalog.EcomMtCatalogProductStockDTO{
+		StoreID:           ps.StoreID,
+		RetailerProductID: ps.RetailerProductID,
+		Stock:             ps.Stock,
+		UnitPrice:         *unitPrice,
+		Enabled:           ps.Enabled,
+	}
+
 	mtCatalogProductStockVariations := []catalog.EcomMtCatalogProductStockVariationDTO{}
 	for _, psVariation := range ps.Variations {
 		priceDelta, err := typealias.NewDecimalFloat64D(psVariation.PriceDelta)
@@ -30,20 +42,9 @@ func toMTCatalogProductStock(
 		)
 	}
 
-	unitPrice, err := typealias.NewDecimalFloat64D(ps.UnitPrice)
-	if err != nil {
-		return nil, err
-	}
-
-	return &catalog.EcomMtCatalogProductStockDTO{
-		StoreID:           ps.StoreID,
-		RetailerProductID: ps.RetailerProductID,
-		Stock:             ps.Stock,
-		UnitPrice:         *unitPrice,
-		Enabled:           ps.Enabled,
-		Variations:        mtCatalogProductStockVariations,
-	}, nil
+	return mtCatalogPS, nil
 }
+*/
 
 func (routeEnv *RouteEnv) PostProductStock(c echo.Context) error {
 	retailerID, err := util.StringToInt64(c.Param("retailerID"))
@@ -102,7 +103,7 @@ func (routeEnv *RouteEnv) PostProductStock(c echo.Context) error {
 
 	savedProductStockEntity, err := routeEnv.DB.FindProductStock(productStockEntity.ProductStockEntityKey)
 
-	//toMTCatalogProductStock(c.Request().Context(), *collectionProductStock)
+	//toMTCatalogProductStock(c.Request().Context(), savedProductStockEntity)
 	//routeEnv.EcomMtCatalogAPI.SyncProductStock()
 
 	return c.JSON(http.StatusOK, savedProductStockEntity)

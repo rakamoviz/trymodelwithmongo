@@ -30,27 +30,25 @@ func (bd DecimalFloat64) MarshalJSON() ([]byte, error) {
 	return json.Marshal(f)
 }
 
-func NewDecimalFloat64F(value float64) *DecimalFloat64 {
+func NewDecimalFloat64F(value float64) DecimalFloat64 {
 	br := big.Rat{}
 	br.SetFloat64(value)
 
-	bd := DecimalFloat64(br)
-	return &bd
+	return DecimalFloat64(br)
 }
 
-func NewDecimalFloat64S(value string) (*DecimalFloat64, error) {
+func NewDecimalFloat64S(value string) (DecimalFloat64, error) {
 	br := big.Rat{}
 	_, ok := br.SetString(value)
 
 	if !ok {
-		return nil, fmt.Errorf("Error parsing DecimalFloat from %s", value)
+		return DecimalFloat64{}, fmt.Errorf("Error parsing DecimalFloat from %s", value)
 	}
 
-	bd := DecimalFloat64(br)
-	return &bd, nil
+	return DecimalFloat64(br), nil
 }
 
-func NewDecimalFloat64D(value primitive.Decimal128) (*DecimalFloat64, error) {
+func NewDecimalFloat64D(value primitive.Decimal128) (DecimalFloat64, error) {
 	return NewDecimalFloat64S(value.String())
 }
 

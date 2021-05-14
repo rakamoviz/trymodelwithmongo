@@ -9,7 +9,7 @@ import (
 	"github.com/rakamoviz/trymodelwithmongo/util"
 )
 
-func (shell *Shell) PostProductStock(c echo.Context) error {
+func (routeEnv *RouteEnv) PostProductStock(c echo.Context) error {
 	retailerID, err := util.StringToInt64(c.Param("retailerID"))
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
@@ -20,7 +20,7 @@ func (shell *Shell) PostProductStock(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	collectionProductFromDB, err := shell.DB.FindPublicProductBySKUAndRetailerID(
+	collectionProductFromDB, err := routeEnv.DB.FindPublicProductBySKUAndRetailerID(
 		publicProductStock.ProductSKU,
 		retailerID,
 	)
@@ -57,7 +57,7 @@ func (shell *Shell) PostProductStock(c echo.Context) error {
 		Variations:        collectionProductStockVariations,
 	}
 
-	err = shell.DB.SaveProductStock(collectionProductStock)
+	err = routeEnv.DB.SaveProductStock(collectionProductStock)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}

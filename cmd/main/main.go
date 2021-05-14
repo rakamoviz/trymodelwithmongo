@@ -7,7 +7,7 @@ import (
 	"github.com/labstack/echo"
 	"github.com/rakamoviz/trymodelwithmongo/pkg/drivers"
 	ecomMtCatalogAPI "github.com/rakamoviz/trymodelwithmongo/pkg/ecom-mt-catalog/api"
-	routesStore "github.com/rakamoviz/trymodelwithmongo/routes/store"
+	storeRoutes "github.com/rakamoviz/trymodelwithmongo/routes/store"
 	"github.com/rakamoviz/trymodelwithmongo/util"
 )
 
@@ -28,12 +28,12 @@ func main() {
 	})
 
 	echoServer := echo.New()
-	commonShell := util.CommonShell{
+	commonRouteEnv := util.CommonRouteEnv{
 		DB:               db,
 		EcomMtCatalogAPI: ecomMtCatalogAPIClient,
 	}
 
-	routesStore.Setup(echoServer, commonShell)
+	storeRoutes.Setup(echoServer, commonRouteEnv)
 
 	echoServer.Logger.Fatal(echoServer.Start(":1323"))
 }

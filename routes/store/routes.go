@@ -5,15 +5,15 @@ import (
 	"github.com/rakamoviz/trymodelwithmongo/util"
 )
 
-type Shell struct {
-	util.CommonShell
+type RouteEnv struct {
+	util.CommonRouteEnv
 }
 
 func Setup(
-	server *echo.Echo, commonShell util.CommonShell,
+	server *echo.Echo, commonRouteEnv util.CommonRouteEnv,
 ) {
-	shell := &Shell{commonShell}
+	routeEnv := &RouteEnv{commonRouteEnv}
 
 	group := server.Group("/store")
-	group.POST("/productStock/:retailerID", shell.PostProductStock)
+	group.POST("/productStock/:retailerID", routeEnv.PostProductStock)
 }

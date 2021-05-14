@@ -1,18 +1,13 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"math/big"
-	"net/http"
 	"time"
 
 	"bitbucket.org/rappinc/gohttp"
 	"github.com/labstack/echo"
-	"github.com/rakamoviz/trymodelwithmongo/pkg/catalog"
 	"github.com/rakamoviz/trymodelwithmongo/pkg/drivers"
 	ecomMtCatalogAPI "github.com/rakamoviz/trymodelwithmongo/pkg/ecom-mt-catalog/api"
-	"github.com/rakamoviz/trymodelwithmongo/typealias"
+	routesStore "github.com/rakamoviz/trymodelwithmongo/routes/store"
 )
 
 func main() {
@@ -21,122 +16,19 @@ func main() {
 		panic(err)
 	}
 
-	retailerID := int64(1)
-
-	publicProductStockAmountBr := new(big.Rat)
-	publicProductStockAmountBr.SetString("12.4")
-
-	publicProductStock := &catalog.PublicProductStock{
-		StoreID:    789,
-		ProductSKU: "abc",
-		Stock:      10,
-		UnitPrice:  typealias.DecimalFloat64(*publicProductStockAmountBr),
-		Enabled:    true,
-		Variations: []catalog.PublicProductStockVariation{},
-		Discounts:  []catalog.PublicProductStockDiscount{},
-	}
-
-	collectionProductFromDB, err := db.FindPublicProductBySKUAndRetailerID(
-		publicProductStock.ProductSKU,
-		retailerID,
-	)
-
-	collectionProductStockVariations := []catalog.CollectionProductStockVariation{}
-	for _, publicProductStockVariation := range publicProductStock.Variations {
-		collectionProductStockVariations = append(
-			collectionProductStockVariations, catalog.CollectionProductStockVariation{
-				VariationValue: publicProductStockVariation.VariationValue,
-				Stock:          publicProductStockVariation.Stock,
-				PriceDelta:     publicProductStockVariation.PriceDelta.BsonDecimal128(),
-			},
-		)
-	}
-
-	fmt.Println("publicProductStock", publicProductStock.UnitPrice.FloatString())
-	collectionProductStock := &catalog.CollectionProductStock{
-		StoreID:           publicProductStock.StoreID,
-		ProductSKU:        publicProductStock.ProductSKU,
-		RetailerID:        retailerID,
-		RetailerProductID: collectionProductFromDB.AlternativeID,
-		Stock:             publicProductStock.Stock,
-		UnitPrice:         publicProductStock.UnitPrice.BsonDecimal128(),
-		Enabled:           publicProductStock.Enabled,
-		Variations:        collectionProductStockVariations,
-	}
-
-	mtCatalogProductStockVariations := []catalog.EcomMtCatalogProductStockVariation{}
-	for _, publicProductStockVariation := range publicProductStock.Variations {
-		mtCatalogProductStockVariations = append(
-			mtCatalogProductStockVariations, catalog.EcomMtCatalogProductStockVariation{
-				VariationValue: publicProductStockVariation.VariationValue,
-				Stock:          publicProductStockVariation.Stock,
-				PriceDelta:     publicProductStockVariation.PriceDelta,
-			},
-		)
-	}
-
-	mtCatalogProductStock := catalog.EcomMtCatalogProductStock{
-		StoreID:           publicProductStock.StoreID,
-		RetailerProductID: collectionProductFromDB.AlternativeID,
-		Stock:             publicProductStock.Stock,
-		UnitPrice:         publicProductStock.UnitPrice,
-		Enabled:           publicProductStock.Enabled,
-		Variations:        mtCatalogProductStockVariations,
-	}
-
-	fmt.Println(collectionProductFromDB, collectionProductStock, mtCatalogProductStock)
-
-	b, err := json.Marshal(mtCatalogProductStock)
-
-	if err != nil {
-		fmt.Println("xxxxxxxx", err)
-	} else {
-		fmt.Println("xx", string(b))
-	}
-
-	fmt.Println("collectionProductStock", collectionProductStock)
-	db.SaveProductStock(collectionProductStock)
-
-	ps2, err := db.FindProductStocks(map[string]interface{}{
-		"retailer_id": 1, "store_id": 789, "product_sku": "abc",
-	})
-	fmt.Println("*ps2[0]", *&ps2[0].UnitPrice)
-
-	restClient := gohttp.NewClient(gohttp.Options{
+	ecomMtCatalogAPIClient := ecomMtCatalogAPI.New(gohttp.NewClient(gohttp.Options{
 		ClientName: "ecom-catalog-clg",
 		Timeout:    30 * time.Second,
-	})
-
-	apiClient := ecomMtCatalogAPI.New(restClient, ecomMtCatalogAPI.Option{
+	}), ecomMtCatalogAPI.Option{
 		Host:                "",
 		Country:             "dev",
 		EcomMtCatalogAPIKey: "",
 		ClientName:          "ecom-catalog-clg",
 	})
 
-	err = apiClient.SyncProductStock(mtCatalogProductStock)
-	if err != nil {
-		fmt.Println(err)
-	}
-
 	echoServer := echo.New()
-	echoServer.POST("/", func(c echo.Context) error {
-		productStock := new(catalog.PublicProductStock)
-		if err = c.Bind(productStock); err != nil {
-			return c.String(http.StatusInternalServerError, err.Error())
-		}
 
-		b, err := json.Marshal(productStock)
-
-		if err != nil {
-			fmt.Println("wwwwwwwwwwwwwwwwxxxxxxxx", err)
-		} else {
-			fmt.Println("eddddxx", string(b))
-		}
-
-		fmt.Println(productStock)
-		return c.JSON(http.StatusOK, productStock)
-	})
+	routesStore.Setup(echoServer, db, ecomMtCatalogAPIClient)
 
 	echoServer.Logger.Fatal(echoServer.Start(":1323"))
 }

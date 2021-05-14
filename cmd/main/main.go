@@ -45,7 +45,7 @@ func main() {
 			collectionProductStockVariations, catalog.CollectionProductStockVariation{
 				VariationValue: publicProductStockVariation.VariationValue,
 				Stock:          publicProductStockVariation.Stock,
-				PriceDelta:     publicProductStockVariation.PriceDelta.Float64L(),
+				PriceDelta:     publicProductStockVariation.PriceDelta.BsonDecimal128(),
 			},
 		)
 	}
@@ -57,7 +57,7 @@ func main() {
 		RetailerID:        retailerID,
 		RetailerProductID: collectionProductFromDB.AlternativeID,
 		Stock:             publicProductStock.Stock,
-		UnitPrice:         publicProductStock.UnitPrice.Float64L(),
+		UnitPrice:         publicProductStock.UnitPrice.BsonDecimal128(),
 		Enabled:           publicProductStock.Enabled,
 		Variations:        collectionProductStockVariations,
 	}
@@ -98,7 +98,7 @@ func main() {
 	ps2, err := db.FindProductStocks(map[string]interface{}{
 		"retailer_id": 1, "store_id": 789, "product_sku": "abc",
 	})
-	fmt.Println("*ps2[0]", *ps2[0])
+	fmt.Println("*ps2[0]", *&ps2[0].UnitPrice)
 
 	restClient := gohttp.NewClient(gohttp.Options{
 		ClientName: "ecom-catalog-clg",

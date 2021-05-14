@@ -27,7 +27,6 @@ func (bd *DecimalFloat64) UnmarshalJSON(b []byte) error {
 func (bd DecimalFloat64) MarshalJSON() ([]byte, error) {
 	f, _ := bd.Float64()
 
-	fmt.Println("ANNNANA ", f)
 	return json.Marshal(f)
 }
 

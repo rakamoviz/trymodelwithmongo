@@ -170,7 +170,7 @@ func (d *db) FindProductStocks(rawFilter map[string]interface{}) ([]*catalog.Col
 	ctx, cancel := context.WithTimeout(context.Background(), d.timeout)
 	defer cancel()
 
-	cur, err := d.productsColl.Find(ctx, bson.M(rawFilter))
+	cur, err := d.productStocksColl.Find(ctx, bson.M(rawFilter))
 	results := []*catalog.CollectionProductStock{}
 	if err != nil {
 		if err == mongo.ErrNoDocuments {

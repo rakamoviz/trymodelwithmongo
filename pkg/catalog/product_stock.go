@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/rakamoviz/trymodelwithmongo/typealias"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type PublicProductStockVariation struct {
@@ -30,9 +31,9 @@ type PublicProductStock struct {
 }
 
 type CollectionProductStockVariation struct {
-	VariationValue string  `bson:"variation_value"`
-	Stock          int32   `bson:"stock"`
-	PriceDelta     float64 `bson:"price_delta"`
+	VariationValue string               `bson:"variation_value"`
+	Stock          int32                `bson:"stock"`
+	PriceDelta     primitive.Decimal128 `bson:"price_delta"`
 }
 
 type CollectionProductStockDiscount struct {
@@ -48,7 +49,7 @@ type CollectionProductStock struct {
 	RetailerID        int64                             `bson:"retailer_id"`
 	RetailerProductID *int64                            `bson:"retailer_product_id"`
 	Stock             int64                             `bson:"stock"`
-	UnitPrice         float64                           `bson:"unit_price"`
+	UnitPrice         primitive.Decimal128              `bson:"unit_price"`
 	Enabled           bool                              `bson:"enabled"`
 	Variations        []CollectionProductStockVariation `bson:"variations"`
 	Discounts         []CollectionProductStockDiscount  `bson:"discounts"`

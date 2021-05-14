@@ -6,8 +6,6 @@ replace bitbucket.org/rappinc/gohttp => /home/rcokorda/Projects/rappinc/gohttp
 
 replace bitbucket.org/rappinc/apm => /home/rcokorda/Projects/rappinc/apm/apm
 
-replace go.mongodb.org/mongo-driver => /home/rcokorda/Projects/mongo-go-driver
-
 require (
 	bitbucket.org/rappinc/gohttp v1.2.0
 	github.com/dropbox/godropbox v0.0.0-20200228041828-52ad444d3502 // indirect

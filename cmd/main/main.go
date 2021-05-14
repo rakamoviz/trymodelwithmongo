@@ -98,7 +98,7 @@ func main() {
 		)
 	}
 
-	mtCatalogProductStock := &catalog.EcomMtCatalogProductStock{
+	mtCatalogProductStock := catalog.EcomMtCatalogProductStock{
 		StoreID:           publicProductStock.StoreID,
 		RetailerProductID: collectionProductFromDB.AlternativeID,
 		Stock:             publicProductStock.Stock,
@@ -128,10 +128,15 @@ func main() {
 		Timeout:    30 * time.Second,
 	})
 
-	ecomMtCatalogAPI.New(restClient, ecomMtCatalogAPI.Option{
+	apiClient := ecomMtCatalogAPI.New(restClient, ecomMtCatalogAPI.Option{
 		Host:                "",
 		Country:             "dev",
 		EcomMtCatalogAPIKey: "",
 		ClientName:          "ecom-catalog-clg",
 	})
+
+	err = apiClient.SyncProductStock(mtCatalogProductStock)
+	if err != nil {
+		fmt.Println(err)
+	}
 }

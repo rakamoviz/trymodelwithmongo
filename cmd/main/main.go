@@ -121,11 +121,12 @@ func main() {
 
 	echoServer := echo.New()
 	echoServer.POST("/", func(c echo.Context) error {
-		u := new(catalog.PublicProductStock)
-		if err = c.Bind(u); err != nil {
+		productStock := new(catalog.PublicProductStock)
+		if err = c.Bind(productStock); err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
-		return c.String(http.StatusOK, "Hello, World!")
+
+		return c.JSON(http.StatusOK, productStock)
 	})
 
 	echoServer.Logger.Fatal(echoServer.Start(":1323"))

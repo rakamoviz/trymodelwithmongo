@@ -10,6 +10,7 @@ import (
 	"github.com/rakamoviz/trymodelwithmongo/pkg/catalog"
 	"github.com/rakamoviz/trymodelwithmongo/pkg/drivers"
 	ecomMtCatalogAPI "github.com/rakamoviz/trymodelwithmongo/pkg/ecom-mt-catalog/api"
+	"github.com/rakamoviz/trymodelwithmongo/typealias"
 )
 
 func main() {
@@ -27,62 +28,37 @@ func main() {
 		StoreID:    789,
 		ProductSKU: "abc",
 		Stock:      10,
-		UnitPrice:  catalog.BigDecimal(*publicProductStockAmountBr),
+		UnitPrice:  typealias.BigDecimalFloat64(*publicProductStockAmountBr),
 		Enabled:    true,
 		Variations: []catalog.PublicProductStockVariation{},
 		Discounts:  []catalog.PublicProductStockDiscount{},
 	}
-
-	/*
-		collectionProduct := &catalog.CollectionProduct{
-			BaseProductInfo: catalog.BaseProductInfo{
-				SKU:  "abc",
-				Name: "Product ABC",
-			},
-			RetailerID: 1,
-		}
-
-		db.SavePublicProduct(collectionProduct)
-		collectionProductFromDB, err := db.FindPublicProductBySKUAndRetailerID("abcx", 1)
-	*/
 
 	collectionProductFromDB, err := db.FindPublicProductBySKUAndRetailerID(
 		publicProductStock.ProductSKU,
 		retailerID,
 	)
 
-	/*
-		type CollectionProductStockVariation struct {
-			VariationValue string     `json:"variation_value"`
-			Stock          int32      `json:"stock"`
-			PriceDelta     BigDecimal `json:"price_delta"`
-		}
-
-		type CollectionProductStockDiscount struct {
-			DiscountType string     `json:"discount_type"`
-			Value        string     `json:"value"`
-			BeginDate    CustomTime `json:"begin_date"`
-			EndDate      CustomTime `json:"end_date"`
-		}
-	*/
 	collectionProductStockVariations := []catalog.CollectionProductStockVariation{}
 	for _, publicProductStockVariation := range publicProductStock.Variations {
+		priceDeltaDecimal128 := publicProductStockVariation.PriceDelta.BsonDecimal128()
 		collectionProductStockVariations = append(
 			collectionProductStockVariations, catalog.CollectionProductStockVariation{
 				VariationValue: publicProductStockVariation.VariationValue,
 				Stock:          publicProductStockVariation.Stock,
-				PriceDelta:     publicProductStockVariation.PriceDelta,
+				PriceDelta:     priceDeltaDecimal128,
 			},
 		)
 	}
 
+	unitPriceDecimal128 := publicProductStock.UnitPrice.BsonDecimal128()
 	collectionProductStock := &catalog.CollectionProductStock{
 		StoreID:           publicProductStock.StoreID,
 		ProductSKU:        publicProductStock.ProductSKU,
 		RetailerID:        retailerID,
 		RetailerProductID: collectionProductFromDB.AlternativeID,
 		Stock:             publicProductStock.Stock,
-		UnitPrice:         publicProductStock.UnitPrice,
+		UnitPrice:         unitPriceDecimal128,
 		Enabled:           publicProductStock.Enabled,
 		Variations:        collectionProductStockVariations,
 	}
@@ -117,7 +93,11 @@ func main() {
 		fmt.Println("xx", string(b))
 	}
 
+	fmt.Println("___________________________________")
+	fmt.Println(collectionProductStock)
 	db.SaveProductStock(collectionProductStock)
+	fmt.Println("___________________________________")
+
 	ps2, err := db.FindProductStocks(map[string]interface{}{
 		"retailer_id": 1, "store_id": 789, "product_sku": "abc",
 	})

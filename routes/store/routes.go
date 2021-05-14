@@ -2,8 +2,6 @@ package store
 
 import (
 	"github.com/labstack/echo"
-	"github.com/rakamoviz/trymodelwithmongo/pkg/drivers"
-	ecomMtCatalogAPI "github.com/rakamoviz/trymodelwithmongo/pkg/ecom-mt-catalog/api"
 	"github.com/rakamoviz/trymodelwithmongo/util"
 )
 
@@ -12,10 +10,9 @@ type Shell struct {
 }
 
 func Setup(
-	server *echo.Echo, DB drivers.DB,
-	EcomMtCatalogAPI *ecomMtCatalogAPI.EcomMtCatalogAPI,
+	server *echo.Echo, commonShell util.CommonShell,
 ) {
-	shell := &Shell{util.CommonShell{DB, EcomMtCatalogAPI}}
+	shell := &Shell{commonShell}
 
 	group := server.Group("/store")
 	group.POST("/productStock/:retailerID", shell.PostProductStock)

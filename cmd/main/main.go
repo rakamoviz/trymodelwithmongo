@@ -8,6 +8,7 @@ import (
 	"github.com/rakamoviz/trymodelwithmongo/pkg/drivers"
 	ecomMtCatalogAPI "github.com/rakamoviz/trymodelwithmongo/pkg/ecom-mt-catalog/api"
 	routesStore "github.com/rakamoviz/trymodelwithmongo/routes/store"
+	"github.com/rakamoviz/trymodelwithmongo/util"
 )
 
 func main() {
@@ -27,8 +28,12 @@ func main() {
 	})
 
 	echoServer := echo.New()
+	commonShell := util.CommonShell{
+		DB:               db,
+		EcomMtCatalogAPI: ecomMtCatalogAPIClient,
+	}
 
-	routesStore.Setup(echoServer, db, ecomMtCatalogAPIClient)
+	routesStore.Setup(echoServer, commonShell)
 
 	echoServer.Logger.Fatal(echoServer.Start(":1323"))
 }

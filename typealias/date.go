@@ -7,11 +7,11 @@ import (
 
 type Date time.Time
 
-const ctLayout = "2006-11-02"
+const layoutISO = "2006-01-02"
 
 func (ct *Date) UnmarshalJSON(b []byte) (err error) {
 	s := strings.Trim(string(b), `"`)
-	nt, err := time.Parse(ctLayout, s)
+	nt, err := time.Parse(layoutISO, s)
 	*ct = Date(nt)
 	return
 }

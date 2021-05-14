@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"net/http"
 	"time"
 
 	"bitbucket.org/rappinc/gohttp"
+	"github.com/labstack/echo"
 	"github.com/rakamoviz/trymodelwithmongo/pkg/catalog"
 	"github.com/rakamoviz/trymodelwithmongo/pkg/drivers"
 	ecomMtCatalogAPI "github.com/rakamoviz/trymodelwithmongo/pkg/ecom-mt-catalog/api"
@@ -116,4 +118,15 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	echoServer := echo.New()
+	echoServer.POST("/", func(c echo.Context) error {
+		u := new(catalog.PublicProductStock)
+		if err = c.Bind(u); err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+		return c.String(http.StatusOK, "Hello, World!")
+	})
+
+	echoServer.Logger.Fatal(echoServer.Start(":1323"))
 }

@@ -126,6 +126,15 @@ func main() {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
 
+		b, err := json.Marshal(productStock)
+
+		if err != nil {
+			fmt.Println("wwwwwwwwwwwwwwwwxxxxxxxx", err)
+		} else {
+			fmt.Println("eddddxx", string(b))
+		}
+
+		fmt.Println(productStock)
 		return c.JSON(http.StatusOK, productStock)
 	})
 

@@ -1,28 +1,29 @@
 package store
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo"
 	"github.com/rakamoviz/trymodelwithmongo/pkg/catalog"
+	"github.com/rakamoviz/trymodelwithmongo/typealias"
 	"github.com/rakamoviz/trymodelwithmongo/util"
 )
 
-/*
 func toMTCatalogProductStock(
 	ctx context.Context, ps catalog.ProductStockEntity,
 ) (catalog.EcomMtCatalogProductStockDTO, error) {
 	unitPrice, err := typealias.NewDecimalFloat64D(ps.UnitPrice)
 	if err != nil {
-		return nil, err
+		return catalog.EcomMtCatalogProductStockDTO{}, err
 	}
 
 	mtCatalogPS := catalog.EcomMtCatalogProductStockDTO{
 		StoreID:           ps.StoreID,
 		RetailerProductID: ps.RetailerProductID,
 		Stock:             ps.Stock,
-		UnitPrice:         *unitPrice,
+		UnitPrice:         unitPrice,
 		Enabled:           ps.Enabled,
 	}
 
@@ -30,21 +31,20 @@ func toMTCatalogProductStock(
 	for _, psVariation := range ps.Variations {
 		priceDelta, err := typealias.NewDecimalFloat64D(psVariation.PriceDelta)
 		if err != nil {
-			return nil, err
+			return mtCatalogPS, err
 		}
 
 		mtCatalogProductStockVariations = append(
 			mtCatalogProductStockVariations, catalog.EcomMtCatalogProductStockVariationDTO{
 				VariationValue: psVariation.VariationValue,
 				Stock:          psVariation.Stock,
-				PriceDelta:     *priceDelta,
+				PriceDelta:     priceDelta,
 			},
 		)
 	}
 
 	return mtCatalogPS, nil
 }
-*/
 
 func (routeEnv *RouteEnv) PostProductStock(c echo.Context) error {
 	retailerID, err := util.StringToInt64(c.Param("retailerID"))
@@ -103,8 +103,15 @@ func (routeEnv *RouteEnv) PostProductStock(c echo.Context) error {
 
 	savedProductStockEntity, err := routeEnv.DB.FindProductStock(productStockEntity.ProductStockEntityKey)
 
-	//toMTCatalogProductStock(c.Request().Context(), savedProductStockEntity)
-	//routeEnv.EcomMtCatalogAPI.SyncProductStock()
+	mtCatalogProductStockDTO, err := toMTCatalogProductStock(c.Request().Context(), savedProductStockEntity)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+
+	err = routeEnv.EcomMtCatalogAPI.SyncProductStock(mtCatalogProductStockDTO)
+	if err != nil {
+		//return c.JSON(http.StatusInternalServerError, err.Error())
+	}
 
 	return c.JSON(http.StatusOK, savedProductStockEntity)
 }

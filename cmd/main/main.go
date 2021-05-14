@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"time"
 
+	"bitbucket.org/rappinc/gohttp"
 	"github.com/rakamoviz/trymodelwithmongo/pkg/catalog"
 	"github.com/rakamoviz/trymodelwithmongo/pkg/drivers"
+	ecomMtCatalogAPI "github.com/rakamoviz/trymodelwithmongo/pkg/ecom-mt-catalog/api"
 )
 
 func main() {
@@ -119,4 +122,16 @@ func main() {
 		"retailer_id": 1, "store_id": 789, "product_sku": "abc",
 	})
 	fmt.Println("eeee", *ps2[0])
+
+	restClient := gohttp.NewClient(gohttp.Options{
+		ClientName: "ecom-catalog-clg",
+		Timeout:    30 * time.Second,
+	})
+
+	ecomMtCatalogAPI.New(restClient, ecomMtCatalogAPI.Option{
+		Host:                "",
+		Country:             "dev",
+		EcomMtCatalogAPIKey: "",
+		ClientName:          "ecom-catalog-clg",
+	})
 }

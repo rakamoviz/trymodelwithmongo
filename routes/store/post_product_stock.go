@@ -46,7 +46,6 @@ func (shell *Shell) PostProductStock(c echo.Context) error {
 		)
 	}
 
-	fmt.Println("publicProductStock", publicProductStock.UnitPrice.FloatString())
 	collectionProductStock := &catalog.CollectionProductStock{
 		StoreID:           publicProductStock.StoreID,
 		ProductSKU:        publicProductStock.ProductSKU,
@@ -56,6 +55,11 @@ func (shell *Shell) PostProductStock(c echo.Context) error {
 		UnitPrice:         publicProductStock.UnitPrice.BsonDecimal128(),
 		Enabled:           publicProductStock.Enabled,
 		Variations:        collectionProductStockVariations,
+	}
+
+	err = shell.DB.SaveProductStock(collectionProductStock)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, collectionProductStock)

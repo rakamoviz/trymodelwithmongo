@@ -2,18 +2,18 @@ package store
 
 import (
 	"github.com/labstack/echo"
-	"github.com/rakamoviz/trymodelwithmongo/util"
+	"github.com/rakamoviz/trymodelwithmongo/routes"
 )
 
-type RouteEnv struct {
-	util.CommonRouteEnv
+type Route struct {
+	routes.Route
 }
 
 func Setup(
-	server *echo.Echo, commonRouteEnv util.CommonRouteEnv,
+	server *echo.Echo, baseRoute routes.Route,
 ) {
-	routeEnv := &RouteEnv{commonRouteEnv}
+	storeRoute := &Route{baseRoute}
 
 	group := server.Group("/store")
-	group.POST("/productStock/:retailerID", routeEnv.PostProductStock)
+	group.POST("/productStock/:retailerID", storeRoute.PostProductStock)
 }

@@ -46,7 +46,7 @@ func toMTCatalogProductStock(
 	return mtCatalogPS, nil
 }
 
-func (routeEnv *RouteEnv) PostProductStock(c echo.Context) error {
+func (route *Route) PostProductStock(c echo.Context) error {
 	retailerID, err := util.StringToInt64(c.Param("retailerID"))
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
@@ -57,7 +57,7 @@ func (routeEnv *RouteEnv) PostProductStock(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	productEntity, err := routeEnv.DB.FindPublicProductBySKUAndRetailerID(
+	productEntity, err := route.DB.FindPublicProductBySKUAndRetailerID(
 		productStockDTO.ProductSKU,
 		retailerID,
 	)
@@ -96,19 +96,19 @@ func (routeEnv *RouteEnv) PostProductStock(c echo.Context) error {
 		Variations:        productStockVariationEntities,
 	}
 
-	err = routeEnv.DB.SaveProductStock(productStockEntity)
+	err = route.DB.SaveProductStock(productStockEntity)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	savedProductStockEntity, err := routeEnv.DB.FindProductStock(productStockEntity.ProductStockEntityKey)
+	savedProductStockEntity, err := route.DB.FindProductStock(productStockEntity.ProductStockEntityKey)
 
 	mtCatalogProductStockDTO, err := toMTCatalogProductStock(c.Request().Context(), savedProductStockEntity)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
 
-	err = routeEnv.EcomMtCatalogAPI.SyncProductStock(mtCatalogProductStockDTO)
+	err = route.EcomMtCatalogAPI.SyncProductStock(mtCatalogProductStockDTO)
 	if err != nil {
 		//return c.JSON(http.StatusInternalServerError, err.Error())
 	}

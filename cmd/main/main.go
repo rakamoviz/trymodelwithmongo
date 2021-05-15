@@ -6,9 +6,9 @@ import (
 	"bitbucket.org/rappinc/gohttp"
 	"github.com/labstack/echo"
 	"github.com/rakamoviz/trymodelwithmongo/docdb"
+	"github.com/rakamoviz/trymodelwithmongo/httphandler"
+	storeHttpHandler "github.com/rakamoviz/trymodelwithmongo/httphandler/store"
 	ecomMtCatalogAPI "github.com/rakamoviz/trymodelwithmongo/pkg/ecom-mt-catalog/api"
-	"github.com/rakamoviz/trymodelwithmongo/routes"
-	storeRoutes "github.com/rakamoviz/trymodelwithmongo/routes/store"
 )
 
 func main() {
@@ -28,12 +28,12 @@ func main() {
 	})
 
 	echoServer := echo.New()
-	commonRouteEnv := routes.Route{
+	baseHttpHandler := httphandler.Base{
 		DB:               db,
 		EcomMtCatalogAPI: ecomMtCatalogAPIClient,
 	}
 
-	storeRoutes.Setup(echoServer, commonRouteEnv)
+	storeHttpHandler.Setup(echoServer, baseHttpHandler)
 
 	echoServer.Logger.Fatal(echoServer.Start(":1323"))
 }

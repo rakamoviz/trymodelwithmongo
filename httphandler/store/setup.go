@@ -14,6 +14,6 @@ func Setup(
 ) {
 	httpHandler := &HttpHandler{baseHttpHandler}
 
-	group := baseGroup.Group("/store")
-	group.POST("/productStock/:retailerID", httpHandler.PostProductStock)
+	routes := baseGroup.Group("/store")
+	routes.POST("/productStock/:retailerID", httpHandler.PostProductStock)
 }

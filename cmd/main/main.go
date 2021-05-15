@@ -33,7 +33,7 @@ func main() {
 		EcomMtCatalogAPI: ecomMtCatalogAPIClient,
 	}
 
-	storeHttpHandler.Setup(echoServer, baseHttpHandler)
+	storeHttpHandler.Setup(echoServer.Group("/api"), baseHttpHandler)
 
 	echoServer.Logger.Fatal(echoServer.Start(":1323"))
 }

@@ -10,10 +10,10 @@ type HttpHandler struct {
 }
 
 func Setup(
-	server *echo.Echo, baseHttpHandler httphandler.Base,
+	baseGroup *echo.Group, baseHttpHandler httphandler.Base,
 ) {
 	httpHandler := &HttpHandler{baseHttpHandler}
 
-	group := server.Group("/store")
+	group := baseGroup.Group("/store")
 	group.POST("/productStock/:retailerID", httpHandler.PostProductStock)
 }

@@ -29,13 +29,21 @@ func main() {
 
 	echoServer := echo.New()
 
+	apiRoutes := echoServer.Group("/api")
+
 	baseHttpHandler := httphandler.Base{
 		DB:               db,
 		EcomMtCatalogAPI: ecomMtCatalogAPIClient,
 	}
-	apiRoutes := echoServer.Group("/api")
 
-	storeHttpHandler.Setup(apiRoutes, baseHttpHandler)
+	setupStoreHttpHandler(apiRoutes, baseHttpHandler)
 
 	echoServer.Logger.Fatal(echoServer.Start(":1323"))
+}
+
+func setupStoreHttpHandler(baseRoutes *echo.Group, baseHttpHandler httphandler.Base) {
+	httpHandler := storeHttpHandler.HttpHandler{
+		Base: baseHttpHandler,
+	}
+	storeHttpHandler.Setup(baseRoutes, httpHandler, "/store")
 }
